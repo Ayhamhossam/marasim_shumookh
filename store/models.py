@@ -19,15 +19,4 @@ class Sale(models.Model):
         self.product.stock -= self.qty
         self.product.save()
         super().save(*args, **kwargs)
-from django.db.models.signals import post_migrate
-from django.contrib.auth.models import User
 
-def create_users(sender, **kwargs):
-    if not User.objects.filter(username='ayham').exists():
-        User.objects.create_superuser('ayham', 'ayham@test.com', '01222560')
-    if not User.objects.filter(username='ali').exists():
-        user = User.objects.create_user('ali', 'ali@test.com', '776940187')
-        user.is_staff = True
-        user.save()
-
-post_migrate.connect(create_users)
