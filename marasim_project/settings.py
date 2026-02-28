@@ -4,7 +4,7 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'marasim-secret-123'
-DEBUG = False # للأمان
+DEBUG = True # للأمان
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
