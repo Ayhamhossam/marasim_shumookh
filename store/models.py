@@ -4,30 +4,32 @@ from django.core.exceptions import ValidationError
 
 class Product(models.Model):
     name = models.CharField("اسم القطعة", max_length=200)
-    cost_price = models.DecimalField("سعر التكلفة", max_digits=10, decimal_places=2, default=0)
+    cost_price = models.DecimalField("سعر التكلفة (الشراء)", max_digits=10, decimal_places=2, default=0)
     stock = models.IntegerField("الكمية المتوفرة", default=0)
 
     def __str__(self):
-        return f"{self.name} ({self.stock})"
-
-    def product_profit(self):
-        sales = self.sale_set.all()
-        return sum(((s.sale_price or 0) - (self.cost_price or 0)) * (s.qty or 0) for s in sales)
+        # يظهر السعر والمخزون بجانب الاسم ليسهل على علي الاختيار
+        return f"{self.name} - (التكلفة: {self.cost_price} | المخزن: {self.stock})"
 
     class Meta:
         verbose_name = "منتج"
-        verbose_name_plural = "المخزن (المنتجات)"
+        verbose_name_plural = "1. إدارة الأصناف والمخزن"
 
 class Sale(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="المنتج")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="اختر المنتج")
     qty = models.IntegerField("الكمية المباعة", default=1)
-    sale_price = models.DecimalField("سعر البيع", max_digits=10, decimal_places=2)
+    sale_price = models.DecimalField("سعر البيع الحالي", max_digits=10, decimal_places=2)
     date = models.DateTimeField("وقت العملية", default=timezone.now)
-    note = models.TextField("ملاحظة", blank=True, null=True)
+    note = models.TextField("ملاحظات إضافية", blank=True, null=True)
 
     def clean(self):
+        # 1. منع البيع بالسالب
         if self.product and self.qty > self.product.stock:
-            raise ValidationError(f"خطأ: المخزون لا يكفي! المتوفر {self.product.stock} فقط.")
+            raise ValidationError(f"❌ خطأ: لا يوجد سوى {self.product.stock} قطع في المخزن.")
+        
+        # 2. منع البيع بأقل من سعر التكلفة (حماية الخسارة)
+        if self.product and self.sale_price < self.product.cost_price:
+            raise ValidationError(f"⚠️ تنبيه حماية: سعر التكلفة هو {self.product.cost_price}. لا يمكنك البيع بخسارة!")
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -38,4 +40,4 @@ class Sale(models.Model):
 
     class Meta:
         verbose_name = "عملية بيع"
-        verbose_name_plural = "سجل المبيعات"
+        verbose_name_plural = "2. سجل المبيعات والارباح"
