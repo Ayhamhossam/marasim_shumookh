@@ -8,7 +8,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
-    'jazzmin',  # يجب أن تكون في البداية لتغيير التصميم
+    'jazzmin',  # التصميم الفخم
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -21,7 +21,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware', # لإدارة الجلسات
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -32,7 +32,13 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'marasim_project.urls'
 WSGI_APPLICATION = 'marasim_project.wsgi.application'
 
-# إعدادات قاعدة البيانات لمنع "تعليق التحميل"
+# --- إعدادات الأمان ومنع الدخول التلقائي ---
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # تسجيل خروج عند إغلاق المتصفح
+SESSION_COOKIE_AGE = 3600  # تنتهي الجلسة بعد ساعة من الخمول
+LOGIN_URL = '/admin/login/'
+LOGOUT_REDIRECT_URL = '/admin/login/'
+
+# --- قاعدة البيانات ---
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
@@ -54,28 +60,32 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- إعدادات التصميم العصري (JAZZMIN) ---
+# --- إعدادات JAZZMIN المرنة للجوال (Responsive) ---
 JAZZMIN_SETTINGS = {
     "site_title": "مراسيم الشموخ",
     "site_header": "مراسيم الشموخ",
     "site_brand": "المحاسب الذكي",
-    "welcome_sign": "أهلاً بك في نظام إدارة مراسيم الشموخ",
-    "copyright": "مراسيم الشموخ للملابس",
+    "welcome_sign": "نظام مراسيم الشموخ المحاسبي",
+    "copyright": "مراسيم الشموخ",
     "search_model": ["store.Product"],
     "show_sidebar": True,
-    "navigation_expanded": True,
+    "navigation_expanded": False, # لجعل القائمة مخفية في الجوال تلقائياً
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
         "store.Product": "fas fa-tshirt",
         "store.Sale": "fas fa-cash-register",
     },
-    "order_with_respect_to": ["store", "store.Product", "store.Sale"],
 }
 
 JAZZMIN_UI_TWEAKS = {
-    "theme": "lux",  # ثيم فخم أسود وأبيض
+    "theme": "lux", 
     "dark_mode_theme": "darkly",
-    "navbar": "navbar-dark",
+    "navbar_fixed": True,  # تثبيت الشريط العلوي
+    "sidebar_fixed": True, # تثبيت القائمة الجانبية
     "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": True,
+    "sidebar_nav_compact_style": True, # ضغط العناصر لتناسب شاشة الجوال
+    "sidebar_nav_child_indent": True,
+    "body_small_text": True, # تصغير النصوص قليلاً لتجنب التداخل
 }
