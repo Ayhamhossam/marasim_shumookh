@@ -1,6 +1,5 @@
 django
-dj-database-url
+dj-database_url
 gunicorn
 whitenoise
-psycopg2-binary
-
+django-jazzmin==3.0.1
