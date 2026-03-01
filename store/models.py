@@ -8,8 +8,13 @@ class Product(models.Model):
     stock = models.IntegerField("الكمية المتوفرة", default=0)
 
     def __str__(self):
-        # يظهر السعر والمخزون بجانب الاسم ليسهل على علي الاختيار
         return f"{self.name} - (التكلفة: {self.cost_price} | المخزن: {self.stock})"
+
+    # --- هذه هي الدالة المفقودة التي تسبب الخطأ ---
+    def product_profit(self):
+        sales = self.sale_set.all()
+        # حساب الأرباح: (سعر البيع - سعر التكلفة) * الكمية
+        return sum(((s.sale_price or 0) - (self.cost_price or 0)) * (s.qty or 0) for s in sales)
 
     class Meta:
         verbose_name = "منتج"
@@ -23,17 +28,16 @@ class Sale(models.Model):
     note = models.TextField("ملاحظات إضافية", blank=True, null=True)
 
     def clean(self):
-        # 1. منع البيع بالسالب
+        # منع البيع بأكثر من المخزن
         if self.product and self.qty > self.product.stock:
             raise ValidationError(f"❌ خطأ: لا يوجد سوى {self.product.stock} قطع في المخزن.")
-        
-        # 2. منع البيع بأقل من سعر التكلفة (حماية الخسارة)
+        # حماية من البيع بخسارة
         if self.product and self.sale_price < self.product.cost_price:
-            raise ValidationError(f"⚠️ تنبيه حماية: سعر التكلفة هو {self.product.cost_price}. لا يمكنك البيع بخسارة!")
+            raise ValidationError(f"⚠️ حماية الخسارة: سعر التكلفة هو {self.product.cost_price}. لا يمكنك البيع بأقل منه!")
 
     def save(self, *args, **kwargs):
         self.clean()
-        if not self.pk:
+        if not self.pk: # خصم من المخزن فقط عند أول حفظ
             self.product.stock -= self.qty
             self.product.save()
         super().save(*args, **kwargs)
